@@ -26,6 +26,11 @@ namespace PotigianHH
             {
                 options.UseSqlServer(Config.Database.ConnectionString);
             });
+
+            services.AddDbContext<SecurityContext>(options =>
+            {
+                options.UseSqlServer(Config.Database.SecurityConnectionString);
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
