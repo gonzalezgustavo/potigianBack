@@ -8,8 +8,10 @@
             private const string User = "SA";
             private const string Password = "Admin01";
             private const string Name = "POTIGIAN_QA";
+            private const string SecurityName = "Seguridad";
 
             public static string ConnectionString = $"Data Source={Hostname};Initial Catalog={Name};Persist Security Info=True;User ID={User};Password={Password}";
+            public static string SecurityConnectionString = $"Data Source={Hostname};Initial Catalog={SecurityName};Persist Security Info=True;User ID={User};Password={Password}";
         }
 
         public static class Requests
