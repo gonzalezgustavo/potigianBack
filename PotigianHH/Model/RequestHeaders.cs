@@ -149,8 +149,5 @@ namespace PotigianHH.Model
 
         [Column("N_MOD_VTA")]
         public char? SaleMode { get; set; }
-
-        //[NotMapped]
-        //public decimal TotalPrice { get; set; }
     }
 }
