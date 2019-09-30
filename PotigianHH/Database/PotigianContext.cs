@@ -21,6 +21,8 @@ namespace PotigianHH.Database
                 .HasKey(rd => new { rd.DocumentPrefix, rd.DocumentSuffix, rd.ArticleCode });
             modelBuilder.Entity<RequestPreparation>()
                 .HasKey(rp => new { rp.Code, rp.DocumentSuffix });
+            modelBuilder.Entity<PurchaseOrder>()
+                .HasKey(rd => new { rd.OrderCode, rd.OrderPrefix, rd.OrderSuffix });
         }
 
         public DbSet<Preparer> Preparers { get; set; }
@@ -34,5 +36,7 @@ namespace PotigianHH.Database
         public DbSet<Article> Articles { get; set; }
 
         public DbSet<RequestMissingDetails> RequestMissingDetails { get; set; }
+
+        public DbSet<PurchaseOrder> PurchaseOrders { get; set; }
     }
 }
