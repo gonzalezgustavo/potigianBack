@@ -7,7 +7,6 @@ namespace PotigianHH.Model
     [Table("T231_PEDIDOS_PREPARACION")]
     public class RequestPreparation
     {
-        [Key]
         [Column("C_CODIGO")]
         public decimal? Code { get; set; }
 

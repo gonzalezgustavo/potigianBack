@@ -48,7 +48,7 @@ namespace PotigianHH.Controllers
         }
 
         [HttpPost("cabe/asignados/{preparer}")]
-        public async Task<ActionResult<Response<List<RequestHeaders>>>> AssignRequestsHeadersToPreparer(int preparer, [FromQuery] bool cigarettesOnly)
+        public async Task<ActionResult<Response<List<RequestHeaders>>>> AssignRequestsHeadersToPreparer(int preparer, [FromQuery(Name = "cigarrillos")] bool cigarettesOnly)
         {
             return await RequestsHandler.HandleAsyncRequest(
                 async () =>
@@ -69,7 +69,27 @@ namespace PotigianHH.Controllers
                         .Take(Config.Requests.RequestsPerPreparer)
                         .ToListAsync();
 
-                    newRequests.ForEach(req =>
+                    var suffixes = newRequests.Select(req => req.DocumentSuffix).Distinct();
+                    var prefixes = newRequests.Select(req => req.DocumentPrefix).Distinct();
+                    var docs = newRequests.Select(req => req.DocumentCode).Distinct();
+
+                    var requestsDetails = await potigianContext.RequestDetails
+                        .Where(req => suffixes.Contains(req.DocumentSuffix) &&
+                                      prefixes.Contains(req.DocumentPrefix) &&
+                                      docs.Contains(req.DocumentCode))
+                        .ToListAsync();
+
+                    var definedRequests = newRequests.Where(req =>
+                        {
+                            var details = requestsDetails.Where(det => req.DocumentSuffix == det.DocumentSuffix
+                                                                     && req.DocumentCode == det.DocumentCode
+                                                                     && req.DocumentPrefix == det.DocumentPrefix);
+                            bool areOnlyCigarettes = details.All(det => new List<decimal?>() { 1, 2 }.Contains(det.FamilyCode));
+
+                            return cigarettesOnly ? areOnlyCigarettes : !areOnlyCigarettes;
+                        }).ToList();
+
+                    definedRequests.ForEach(req =>
                     {
                         req.SituationCode = Config.Requests.StateInPreparation;
                         req.SituationDate = DateTime.Now;
@@ -80,7 +100,7 @@ namespace PotigianHH.Controllers
 
                     await potigianContext.SaveChangesAsync();
 
-                    return newRequests;
+                    return definedRequests;
                 });
         }
 
@@ -105,7 +125,7 @@ namespace PotigianHH.Controllers
                         req => req.ArticleCode,
                         article => article.Code,
                         (req, article) => req.Append(article))
-                    .ToListAsync()); ;
+                    .ToListAsync());
         }
 
         [HttpGet("preparaciones")]
@@ -115,6 +135,67 @@ namespace PotigianHH.Controllers
                 async () => await potigianContext.RequestPreparations.ToListAsync());
         }
 
-        // TODO: preparar el finalizado de los pedidos
+        [HttpPost("preparaciones/{prefixDoc}/{doc}/{suffixDoc}")]
+        public async Task<ActionResult<Response<bool>>> CloseRequestPreparation(int prefixDoc, int doc, int suffixDoc, [FromBody] IDictionary<decimal?, int> articleCount)
+        {
+            return await RequestsHandler.HandleAsyncRequest(
+                async () =>
+                {
+                    var requestDetails = await potigianContext.RequestDetails
+                        .Where(req =>
+                            req.DocumentPrefix == prefixDoc &&
+                            req.DocumentCode == doc &&
+                            req.DocumentSuffix == suffixDoc)
+                        .ToListAsync();
+                    var unfinishedRequestDetails = requestDetails
+                        .Where(req => req.RequestItem != articleCount[req.ArticleCode]);
+                    var requestHeader = await potigianContext.RequestHeaders
+                        .FirstAsync(req => req.DocumentPrefix == prefixDoc && req.DocumentCode == doc && req.DocumentSuffix == suffixDoc);
+
+                    // If there are unfinished requests, we should not close.
+                    if (unfinishedRequestDetails.Count() > 0)
+                    {
+                        var missingRequestDetails = unfinishedRequestDetails
+                            .Select(req => new RequestMissingDetails(req, articleCount[req.ArticleCode]))
+                            .ToList();
+                        var requestsToRemove = requestDetails.Where(reqDetail => !unfinishedRequestDetails.Any(
+                            unfReq => reqDetail.DocumentCode == unfReq.DocumentCode &&
+                                      reqDetail.DocumentPrefix == unfReq.DocumentPrefix &&
+                                      reqDetail.DocumentSuffix == unfReq.DocumentSuffix &&
+                                      reqDetail.ArticleCode == unfReq.ArticleCode));
+
+                        potigianContext.RequestMissingDetails.AddRange(missingRequestDetails);
+                        potigianContext.RequestDetails.RemoveRange(requestsToRemove);
+
+                        await potigianContext.SaveChangesAsync();
+
+                        return false;
+                    }
+
+                    // Success!
+                    var preparation = new RequestPreparation
+                    {
+                        // TBD
+                        // MovementFlag = ?
+                        Code = await potigianContext.RequestPreparations.CountAsync() + 1,
+                        DocumentSuffix = suffixDoc,
+                        InsertDate = DateTime.Now,
+                        StartDate = requestHeader.SituationDate,
+                        StatusCode = Config.Requests.StateClosed,
+                        EndDate = DateTime.Now,
+                    };
+
+                    requestHeader.SituationCode = Config.Requests.StateClosed;
+                    requestHeader.SituationDate = DateTime.Now;
+                    potigianContext.Update(requestHeader);
+
+                    potigianContext.RequestDetails.RemoveRange(requestDetails);
+                    potigianContext.RequestPreparations.Add(preparation);
+
+                    await potigianContext.SaveChangesAsync();
+
+                    return true;
+                });
+        }
     }
 }
