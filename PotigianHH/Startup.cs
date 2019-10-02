@@ -24,12 +24,12 @@ namespace PotigianHH
 
             services.AddDbContext<PotigianContext>(options =>
             {
-                options.UseSqlServer(Config.Database.ConnectionString);
+                options.UseSqlServer(Configuration.GetValue<string>("PotigianDatabase"));
             });
 
             services.AddDbContext<SecurityContext>(options =>
             {
-                options.UseSqlServer(Config.Database.SecurityConnectionString);
+                options.UseSqlServer(Configuration.GetValue<string>("SecurityDatabase"));
             });
         }
 

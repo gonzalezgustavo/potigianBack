@@ -66,9 +66,6 @@ namespace PotigianHH.Model
         [Column("K_DESC_APLIC_A_PRECIO_VTA")]
         public decimal? DiscountAppliedToSalePrice { get; set; }
 
-        [NotMapped]
-        bool modified = false;
-
         public RequestMissingDetails()
         {
         }

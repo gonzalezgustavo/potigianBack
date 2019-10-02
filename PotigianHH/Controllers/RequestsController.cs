@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using PotigianHH.Controllers.Model;
 using PotigianHH.Database;
 using PotigianHH.Model;
@@ -15,10 +16,12 @@ namespace PotigianHH.Controllers
     public class RequestsController : ControllerBase
     {
         private readonly PotigianContext potigianContext;
+        private readonly IConfiguration config;
 
-        public RequestsController(PotigianContext potigianContext)
+        public RequestsController(PotigianContext potigianContext, IConfiguration config)
         {
             this.potigianContext = potigianContext;
+            this.config = config;
         }
 
         [HttpGet("cabe")]
@@ -66,7 +69,7 @@ namespace PotigianHH.Controllers
 
                     var newRequests = await potigianContext.RequestHeaders
                         .Where(req => req.SituationCode == Config.Requests.StateAvailableToPrepare)
-                        .Take(Config.Requests.RequestsPerPreparer)
+                        .Take(config.GetValue<int>("RequestsPerPreparer"))
                         .ToListAsync();
 
                     var suffixes = newRequests.Select(req => req.DocumentSuffix).Distinct();
@@ -177,7 +180,7 @@ namespace PotigianHH.Controllers
                     {
                         // TBD
                         // MovementFlag = ?
-                        Code = await potigianContext.RequestPreparations.CountAsync() + 1,
+                        Code = requestHeader.PreparerCode,
                         DocumentSuffix = suffixDoc,
                         InsertDate = DateTime.Now,
                         StartDate = requestHeader.SituationDate,
@@ -189,7 +192,6 @@ namespace PotigianHH.Controllers
                     requestHeader.SituationDate = DateTime.Now;
                     potigianContext.Update(requestHeader);
 
-                    potigianContext.RequestDetails.RemoveRange(requestDetails);
                     potigianContext.RequestPreparations.Add(preparation);
 
                     await potigianContext.SaveChangesAsync();
