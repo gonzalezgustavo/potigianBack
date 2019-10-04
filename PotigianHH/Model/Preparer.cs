@@ -7,7 +7,7 @@ namespace PotigianHH.Model
     [Table("T202_PREPARADORES")]
     public class Preparer
     {
-        public int Id => int.Parse(Code);
+        public int Id => int.Parse(Code.Replace("CSPRP", ""));
 
         [Column("N_DESCRIPCION")]
         public string Name { get; set; }

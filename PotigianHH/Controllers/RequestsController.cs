@@ -46,7 +46,7 @@ namespace PotigianHH.Controllers
         {
             return await RequestsHandler.HandleAsyncRequest(
                 async () => await potigianContext.RequestHeaders
-                .Where(h => h.PreparerCode == preparer && h.SituationCode == Config.Requests.StateInPreparation)
+                .Where(h => h.PreparerCode == preparer.ToString() && h.SituationCode == Config.Requests.StateInPreparation)
                 .ToListAsync());
         }
 
@@ -58,7 +58,7 @@ namespace PotigianHH.Controllers
                 {
                     var assignedRequests = await potigianContext.RequestHeaders
                     .Where(req =>
-                        req.PreparerCode == preparer && req.SituationCode == Config.Requests.StateInPreparation)
+                        req.PreparerCode == preparer.ToString() && req.SituationCode == Config.Requests.StateInPreparation)
                     .ToListAsync();
 
                     // If there are any assigned requests, we won't assign new ones.
@@ -96,7 +96,7 @@ namespace PotigianHH.Controllers
                     {
                         req.SituationCode = Config.Requests.StateInPreparation;
                         req.SituationDate = DateTime.Now;
-                        req.PreparerCode = preparer;
+                        req.PreparerCode = preparer.ToString();
 
                         potigianContext.Update(req);
                     });
@@ -180,7 +180,7 @@ namespace PotigianHH.Controllers
                     {
                         // TBD
                         // MovementFlag = ?
-                        Code = requestHeader.PreparerCode,
+                        Code = requestHeader.PreparerCode.ToString(),
                         DocumentSuffix = suffixDoc,
                         InsertDate = DateTime.Now,
                         StartDate = requestHeader.SituationDate,

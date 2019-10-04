@@ -8,7 +8,7 @@ namespace PotigianHH.Model
     public class RequestPreparation
     {
         [Column("C_CODIGO")]
-        public decimal? Code { get; set; }
+        public string Code { get; set; }
 
         [Column("C_MOV")]
         public char? MovementFlag { get; set; }

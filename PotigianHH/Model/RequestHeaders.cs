@@ -136,7 +136,7 @@ namespace PotigianHH.Model
         public string EnabledFlag { get; set; }
 
         [Column("C_PREPARADOR")]
-        public decimal? PreparerCode { get; set; }
+        public string PreparerCode { get; set; }
 
         [Column("F_PREPARACION")] // TODO: posible tipo invalido?
         public long? PreparerDate { get; set; }
