@@ -139,13 +139,13 @@ namespace PotigianHH.Model
         public string PreparerCode { get; set; }
 
         [Column("F_PREPARACION")]
-        public DateTime PreparerDate { get; set; }
+        public DateTime? PreparerDate { get; set; }
 
         [Column("N_ORDEN_COMP")]
-        public long? PurchaseOrderNumber { get; set; }
+        public string PurchaseOrderNumber { get; set; }
 
         [Column("N_PEDIDO_APP")]
-        public long? AppRequestNumber { get; set; }
+        public string AppRequestNumber { get; set; }
 
         [Column("N_MOD_VTA")]
         public char? SaleMode { get; set; }

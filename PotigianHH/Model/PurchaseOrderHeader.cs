@@ -22,7 +22,7 @@ namespace PotigianHH.Model
         public decimal Situation { get; set; }
 
         [Column("F_EMISION")]
-        public DateTime EmissionDate { get; set; }
+        public DateTime? EmissionDate { get; set; }
 
         [Column("C_COMPRADOR")]
         public decimal BuyerCode { get; set; }
