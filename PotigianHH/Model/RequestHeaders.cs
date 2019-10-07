@@ -138,8 +138,8 @@ namespace PotigianHH.Model
         [Column("C_PREPARADOR")]
         public string PreparerCode { get; set; }
 
-        [Column("F_PREPARACION")] // TODO: posible tipo invalido?
-        public long? PreparerDate { get; set; }
+        [Column("F_PREPARACION")]
+        public DateTime PreparerDate { get; set; }
 
         [Column("N_ORDEN_COMP")]
         public long? PurchaseOrderNumber { get; set; }
