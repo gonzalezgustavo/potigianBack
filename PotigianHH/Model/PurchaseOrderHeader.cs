@@ -1,11 +1,10 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PotigianHH.Model
 {
     [Table("T080_OC_CABE")]
-    public class PurchaseOrder
+    public class PurchaseOrderHeader
     {
         [Column("C_OC")]
         public decimal OrderCode { get; set; }
