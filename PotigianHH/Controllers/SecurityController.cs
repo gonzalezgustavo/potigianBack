@@ -27,7 +27,7 @@ namespace PotigianHH.Controllers
                 {
                     var user = await (from u in securityContext.Users 
                                       join s in securityContext.AccessSystems on u.AccessCode.Trim() equals s.AccessCode.Trim()
-                                      where s.Name.Trim() == "Mercaderias" && u.Code.Trim() == code && u.Name.Trim() == usr.Trim()
+                                      where s.Name.Trim() == "Mercaderias" && u.Code.Trim() == usr && u.AccessCode.Trim() == code
                                       select u).FirstOrDefaultAsync();
 
                     if (user == null)
