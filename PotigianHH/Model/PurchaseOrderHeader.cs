@@ -21,8 +21,8 @@ namespace PotigianHH.Model
         [Column("C_SITUAC")]
         public decimal Situation { get; set; }
 
-        [Column("F_ALTA_SIST")]
-        public DateTime InsertDate { get; set; }
+        [Column("F_EMISION")]
+        public DateTime EmissionDate { get; set; }
 
         [Column("C_COMPRADOR")]
         public decimal BuyerCode { get; set; }
