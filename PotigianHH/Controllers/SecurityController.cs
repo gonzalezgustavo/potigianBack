@@ -19,15 +19,15 @@ namespace PotigianHH.Controllers
             this.securityContext = securityContext;
         }
 
-        [HttpGet("{code}")]
-        public async Task<ActionResult<Response<User>>> LoginUser(string code)
+        [HttpGet("{usr}/{code}")]
+        public async Task<ActionResult<Response<User>>> LoginUser(string usr, string code)
         {
             return await RequestsHandler.HandleAsyncRequest(
                 async () =>
                 {
                     var user = await (from u in securityContext.Users 
                                       join s in securityContext.AccessSystems on u.AccessCode.Trim() equals s.AccessCode.Trim()
-                                      where s.Name.Trim() == "Mercaderias" && u.Code.Trim() == code
+                                      where s.Name.Trim() == "Mercaderias" && u.Code.Trim() == code && u.Name.Trim() == usr.Trim()
                                       select u).FirstOrDefaultAsync();
 
                     if (user == null)
