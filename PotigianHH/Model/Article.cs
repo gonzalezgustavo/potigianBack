@@ -10,6 +10,9 @@ namespace PotigianHH.Model
         [Column("C_ARTICULO")]
         public decimal Code { get; set; }
 
+        [Column("N_ARTICULO")]
+        public string Name { get; set; }
+
         [Column("C_EAN")]
         public string EanCode { get; set; }
 

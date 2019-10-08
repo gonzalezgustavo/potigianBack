@@ -60,7 +60,16 @@ namespace PotigianHH.Controllers
                         expr = o => o.OrderCode.ToString().Contains(ocCode) && o.ProviderCode.ToString().Contains(providerCode) && o.Situation == 1;
                     }
 
-                    return await potigianContext.PurchaseOrdersHeaders.Where(expr).ToListAsync();
+                    var ocs = potigianContext.PurchaseOrdersHeaders.Where(expr);
+
+                    await ocs.ForEachAsync(async oc =>
+                    {
+                        oc.Items = await potigianContext.PurchaseOrderDetails
+                            .Where(od => od.SuffixOcCode == oc.OrderSuffix && od.PrefixOcCode == oc.OrderPrefix && od.OcCode == oc.OrderCode)
+                            .CountAsync();
+                    });
+
+                    return await ocs.ToListAsync();
                 });
         }
     }

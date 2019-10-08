@@ -26,5 +26,8 @@ namespace PotigianHH.Model
 
         [Column("C_COMPRADOR")]
         public decimal BuyerCode { get; set; }
+
+        [NotMapped]
+        public int Items { get; set; }
     }
 }
