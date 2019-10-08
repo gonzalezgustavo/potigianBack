@@ -6,16 +6,16 @@ namespace PotigianHH.Model
     public class PurchaseOrderDetails
     {
         [Column("C_OC")]
-        public int OcCode { get; set; }
+        public decimal OcCode { get; set; }
 
         [Column("U_PREFIJO_OC")]
-        public int PrefixOcCode { get; set; }
+        public decimal PrefixOcCode { get; set; }
 
         [Column("U_SUFIJO_OC")]
-        public int SuffixOcCode { get; set; }
+        public decimal SuffixOcCode { get; set; }
 
         [Column("C_ARTICULO")]
-        public int ArticleCode { get; set; }
+        public decimal ArticleCode { get; set; }
 
         [NotMapped]
         public string ArticleName { get; set; }

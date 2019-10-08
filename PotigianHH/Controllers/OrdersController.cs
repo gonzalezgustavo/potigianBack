@@ -22,13 +22,6 @@ namespace PotigianHH.Controllers
             this.potigianContext = potigianContext;
         }
 
-        [HttpGet("{prefixOc}/{oc}/{suffixOc}")]
-        public async Task<ActionResult<Response<PurchaseOrderHeader>>> GetOrderById(int prefixOc, int oc, int suffixOc)
-        {
-            return await RequestsHandler.HandleAsyncRequest(
-                async () => await potigianContext.PurchaseOrdersHeaders.Where(o => o.OrderPrefix == prefixOc && o.OrderCode == oc && o.OrderSuffix == suffixOc && o.Situation == 1).FirstOrDefaultAsync());
-        }
-
         [HttpGet("proveedor/{code}")]
         public async Task<ActionResult<Response<List<PurchaseOrderHeader>>>> GetOrdersByProvider(int code)
         {
@@ -71,6 +64,23 @@ namespace PotigianHH.Controllers
 
                     return await ocs.ToListAsync();
                 });
+        }
+
+        [HttpGet("{prefixCode}/{ocCode}/{suffixCode}")]
+        public async Task<ActionResult<Response<List<PurchaseOrderDetails>>>> GetOrderDetails(string prefixCode, string ocCode, string suffixCode)
+        {
+            return await RequestsHandler.HandleAsyncRequest(
+                async () => await potigianContext.PurchaseOrderDetails
+                    .Where(od =>
+                        od.PrefixOcCode.ToString() == prefixCode &&
+                        od.OcCode.ToString() == ocCode &&
+                        od.SuffixOcCode.ToString() == suffixCode)
+                    .Join(
+                        potigianContext.Articles,
+                        od => od.ArticleCode,
+                        article => article.Code,
+                        (od, article) => od.Append(article))
+                    .ToListAsync());
         }
     }
 }
