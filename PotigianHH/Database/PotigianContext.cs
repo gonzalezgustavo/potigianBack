@@ -42,5 +42,7 @@ namespace PotigianHH.Database
         public DbSet<PurchaseOrderHeader> PurchaseOrdersHeaders { get; set; }
 
         public DbSet<PurchaseOrderDetails> PurchaseOrderDetails { get; set; }
+
+        public DbSet<BranchArticle> BranchArticles { get; set; }
     }
 }

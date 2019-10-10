@@ -138,6 +138,9 @@ namespace PotigianHH.Model
         [NotMapped]
         public string AlternativeEanCode4 { get; set; }
 
+        [NotMapped]
+        public decimal SaleFactor { get; set; }
+
         public RequestDetails Append(Article article)
         {
             EanCode = article.EanCode;
@@ -146,6 +149,13 @@ namespace PotigianHH.Model
             AlternativeEanCode2 = article.AlternativeEanCode2;
             AlternativeEanCode3 = article.AlternativeEanCode3;
             AlternativeEanCode4 = article.AlternativeEanCode4;
+
+            return this;
+        }
+
+        public RequestDetails Append(BranchArticle branchArticle)
+        {
+            SaleFactor = branchArticle.SaleFactor;
 
             return this;
         }

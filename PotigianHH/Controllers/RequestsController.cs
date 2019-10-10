@@ -118,17 +118,33 @@ namespace PotigianHH.Controllers
         public async Task<ActionResult<Response<List<RequestDetails>>>> GetRequestDetails(int prefixDoc, int doc, int suffixDoc)
         {
             return await RequestsHandler.HandleAsyncRequest(
-                async () => await potigianContext.RequestDetails
-                    .Where(req =>
-                        req.DocumentPrefix == prefixDoc &&
-                        req.DocumentCode == doc &&
-                        req.DocumentSuffix == suffixDoc)
-                    .Join(
-                        potigianContext.Articles,
-                        req => req.ArticleCode,
-                        article => article.Code,
-                        (req, article) => req.Append(article))
-                    .ToListAsync());
+                async () =>
+                {
+                    var requestDetails = await potigianContext.RequestDetails
+                        .Where(req =>
+                            req.DocumentPrefix == prefixDoc &&
+                            req.DocumentCode == doc &&
+                            req.DocumentSuffix == suffixDoc)
+                        .Join(
+                            potigianContext.Articles,
+                            req => req.ArticleCode,
+                            article => article.Code,
+                            (req, article) => req.Append(article))
+                        .ToListAsync();
+
+                    foreach (var req in requestDetails)
+                    {
+                        var value = await potigianContext.BranchArticles.FirstOrDefaultAsync(a => a.ArticleCode == req.ArticleCode);
+                        if (value.ArticleCode == null || value.ArticleCode == 0)
+                        {
+                            value.ArticleCode = 1;
+                        }
+                        req.Append(value);
+                    }
+
+                    return requestDetails;
+                });
+
         }
 
         [HttpGet("preparaciones")]
