@@ -69,7 +69,6 @@ namespace PotigianHH.Controllers
 
                     var newRequests = await potigianContext.RequestHeaders
                         .Where(req => req.SituationCode == Config.Requests.StateAvailableToPrepare)
-                        .Take(config.GetValue<int>("RequestsPerPreparer"))
                         .ToListAsync();
 
                     var suffixes = newRequests.Select(req => req.DocumentSuffix).Distinct();
@@ -90,7 +89,9 @@ namespace PotigianHH.Controllers
                             bool areOnlyCigarettes = details.All(det => new List<decimal?>() { 1, 2 }.Contains(det.FamilyCode));
 
                             return cigarettesOnly ? areOnlyCigarettes : !areOnlyCigarettes;
-                        }).ToList();
+                        })
+                        .Take(config.GetValue<int>("RequestsPerPreparer"))
+                        .ToList();
 
                     definedRequests.ForEach(req =>
                     {
