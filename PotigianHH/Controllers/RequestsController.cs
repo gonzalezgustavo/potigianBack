@@ -58,7 +58,7 @@ namespace PotigianHH.Controllers
                 {
                     var assignedRequests = await potigianContext.RequestHeaders
                     .Where(req =>
-                        req.PreparerCode == preparer.ToString() && req.SituationCode == Config.Requests.StateInPreparation)
+                        req.PreparerCode == preparer.ToString() || req.PreparerCode == $"CSPRP{preparer}" && req.SituationCode == Config.Requests.StateInPreparation)
                     .ToListAsync();
 
                     // If there are any assigned requests, we won't assign new ones.
