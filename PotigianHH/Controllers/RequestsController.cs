@@ -46,7 +46,7 @@ namespace PotigianHH.Controllers
         {
             return await RequestsHandler.HandleAsyncRequest(
                 async () => await potigianContext.RequestHeaders
-                .Where(h => h.PreparerCode == preparer.ToString() && h.SituationCode == Config.Requests.StateInPreparation)
+                .Where(h => h.PreparerCode == preparer.ToString() || h.PreparerCode == $"CSPRP{preparer}" && h.SituationCode == Config.Requests.StateInPreparation)
                 .ToListAsync());
         }
 
