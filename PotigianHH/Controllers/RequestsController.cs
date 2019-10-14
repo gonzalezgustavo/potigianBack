@@ -168,23 +168,38 @@ namespace PotigianHH.Controllers
                         .ToListAsync();
                     var unfinishedRequestDetails = requestDetails
                         .Where(req => req.RequestItem != articleCount[req.ArticleCode]);
+                    var finishedRequestDetails = requestDetails
+                        .Where(req => req.RequestItem == articleCount[req.ArticleCode]);
                     var requestHeader = await potigianContext.RequestHeaders
                         .FirstAsync(req => req.DocumentPrefix == prefixDoc && req.DocumentCode == doc && req.DocumentSuffix == suffixDoc);
 
-                    // If there are unfinished requests, we should not close.
+                    // Unfinished requests case
                     if (unfinishedRequestDetails.Count() > 0)
                     {
                         var missingRequestDetails = unfinishedRequestDetails
                             .Select(req => new RequestMissingDetails(req, articleCount[req.ArticleCode]))
                             .ToList();
-                        var requestsToRemove = requestDetails.Where(reqDetail => !unfinishedRequestDetails.Any(
+                        var requestsToRemove = requestDetails.Where(reqDetail => !finishedRequestDetails.Any(
+                            fReq => reqDetail.DocumentCode == fReq.DocumentCode &&
+                                      reqDetail.DocumentPrefix == fReq.DocumentPrefix &&
+                                      reqDetail.DocumentSuffix == fReq.DocumentSuffix &&
+                                      reqDetail.ArticleCode == fReq.ArticleCode));
+
+                        var requestsToUpdate = requestDetails.Where(reqDetail => !unfinishedRequestDetails.Any(
                             unfReq => reqDetail.DocumentCode == unfReq.DocumentCode &&
                                       reqDetail.DocumentPrefix == unfReq.DocumentPrefix &&
                                       reqDetail.DocumentSuffix == unfReq.DocumentSuffix &&
                                       reqDetail.ArticleCode == unfReq.ArticleCode));
 
+                        foreach (var request in requestsToUpdate)
+                        {
+                            request.PackagesGrams = request.PackagesGrams - articleCount[request.ArticleCode];
+                            request.ArticleTotal = request.PackagesGrams * request.FinalArticleUnitaryPrice;
+                        }
+
                         potigianContext.RequestMissingDetails.AddRange(missingRequestDetails);
                         potigianContext.RequestDetails.RemoveRange(requestsToRemove);
+                        potigianContext.RequestDetails.UpdateRange(requestsToUpdate);
 
                         await potigianContext.SaveChangesAsync();
 
