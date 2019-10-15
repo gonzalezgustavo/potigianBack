@@ -63,91 +63,16 @@ namespace PotigianHH.Model
         [Column("N_LOCALIDAD_CLIENTE")]
         public string ClientTown { get; set; }
 
-        [Column("C_COND_IVA_CLIENTE")]
-        public decimal? ClientIVACondition { get; set; }
-
-        [Column("M_EXENTO_IVA")]
-        public char? ClientIVAExemptFlag { get; set; }
-
-        [Column("M_IB_CLIENTE")]
-        public char? ClientGrossIncomeFlag { get; set; }
-
-        [Column("C_FORMA_PAGO")]
-        public decimal? PaymentMethodCode { get; set; }
-
-        [Column("C_COMISIONISTA")]
-        public decimal? CommissionAgentCode { get; set; }
-
-        [Column("N_COMISIONISTA")]
-        public string CommissionAgentName { get; set; }
-
-        [Column("C_VENDEDOR")]
-        public decimal? SellerCode { get; set; }
-
-        [Column("N_VENDEDOR")]
-        public string SellerName { get; set; }
-
-        [Column("M_BAUTIZADOS")]
-        public char? BaptizedFlag { get; set; }
-
-        [Column("K_RECAR_ART_OFER")]
-        public decimal? ArticleForSaleRecharge { get; set; }
-
-        [Column("K_RECAR_ART_NO_OFER")]
-        public decimal? ArticleNotForSaleRecharge { get; set; }
-
-        [Column("C_TARJETA")]
-        public decimal? CardCode { get; set; }
-
-        [Column("U_CUOTAS_TARJETA")]
-        public decimal? CardInstallmentCount { get; set; }
-
-        [Column("K_RECAR_TARJETA")]
-        public decimal? CardRecharge { get; set; }
-
-        [Column("C_USUARIO")]
-        public string UserCode { get; set; }
-
-        [Column("C_TERMINAL")]
-        public string TerminalCode { get; set; }
-
-        [Column("D_OBSERVACION")]
-        public string Observations { get; set; }
-
-        [Column("M_MOBILE")]
-        public char? MobileFlag { get; set; }
-
-        [Column("C_CLIENTES_CF")]
-        public decimal? CFClientCode { get; set; }
-
-        [Column("C_USUARIO_PEDIDO")]
-        public string RequestUserCode { get; set; }
-
-        [Column("N_REFERENCIA")]
-        public decimal? ReferenceNumber { get; set; }
-
         [Column("N_RECORRIDO")]
-        public int? PathNumber { get; set; }
+        public decimal? PathNumber { get; set; }
 
         [Column("N_REPARTO")]
-        public int? DistributionNumber { get; set; }
-
-        [Column("M_HABILITADO")]
-        public string EnabledFlag { get; set; }
+        public decimal? DistributionNumber { get; set; }
 
         [Column("C_PREPARADOR")]
         public string PreparerCode { get; set; }
 
         [Column("F_PREPARACION")]
         public DateTime? PreparerDate { get; set; }
-
-        [Column("N_ORDEN_COMP")]
-        public string PurchaseOrderNumber { get; set; }
-
-        [Column("N_PEDIDO_APP")]
-        public string AppRequestNumber { get; set; }
-
-        [Column("N_MOD_VTA")]
-        public char? SaleMode { get; set; }
     }
 }
