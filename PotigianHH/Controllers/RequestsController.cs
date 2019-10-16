@@ -70,6 +70,8 @@ namespace PotigianHH.Controllers
                         potigianContext.Update(r);
                     });
 
+                    await potigianContext.SaveChangesAsync();
+
                     return true;
                 });
         }
