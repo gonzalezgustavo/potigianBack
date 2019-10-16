@@ -89,7 +89,7 @@ namespace PotigianHH.Model
             this.TotalArticleWeight = details.TotalArticleWeight;
             this.RequestGramsUnit = details.RequestItem;
             this.DeliveredGramsUnit = actualCount;
-            this.PendingGramsUnit = this.RequestGramsUnit - this.DeliveredGramsUnit;
+            this.PendingGramsUnit = this.PackagesGrams - this.DeliveredGramsUnit;
             this.InsertDate = DateTime.Now;
             this.DiscountAppliedToSalePrice = details.DiscountAppliedToSalePrice;
         }

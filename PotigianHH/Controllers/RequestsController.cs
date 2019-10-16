@@ -259,7 +259,7 @@ namespace PotigianHH.Controllers
 
                         foreach (var request in requestsToUpdate)
                         {
-                            request.PackagesGrams = request.PackagesGrams - payload.ArticleCount[request.ArticleCode];
+                            request.PackagesGrams = payload.ArticleCount[request.ArticleCode];
                             request.ArticleTotal = request.PackagesGrams * request.FinalArticleUnitaryPrice;
                         }
 
