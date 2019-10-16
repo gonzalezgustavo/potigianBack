@@ -50,7 +50,7 @@ namespace PotigianHH.Controllers
                 .ToListAsync());
         }
 
-        [HttpDelete("cabe/asignados/{preparer}")]
+        [HttpPut("cabe/asignados/{preparer}")]
         public async Task<ActionResult<Response<bool>>> ClearAssignedRequestsFromPreparer(int preparer)
         {
             return await RequestsHandler.HandleAsyncRequest(
