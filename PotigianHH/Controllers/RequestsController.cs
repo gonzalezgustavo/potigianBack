@@ -156,7 +156,7 @@ namespace PotigianHH.Controllers
         }
 
         [HttpPost("preparaciones/{prefixDoc}/{doc}/{suffixDoc}")]
-        public async Task<ActionResult<Response<bool>>> CloseRequestPreparation(int prefixDoc, int doc, int suffixDoc, [FromBody] IDictionary<decimal?, int> articleCount)
+        public async Task<ActionResult<Response<bool>>> CloseRequestPreparation(int prefixDoc, int doc, int suffixDoc, [FromBody] CloseRequestPayload payload)
         {
             return await RequestsHandler.HandleAsyncRequest(
                 async () =>
@@ -168,9 +168,9 @@ namespace PotigianHH.Controllers
                             req.DocumentSuffix == suffixDoc)
                         .ToListAsync();
                     var unfinishedRequestDetails = requestDetails
-                        .Where(req => req.RequestItem != articleCount[req.ArticleCode]);
+                        .Where(req => req.RequestItem != payload.ArticleCount[req.ArticleCode]);
                     var finishedRequestDetails = requestDetails
-                        .Where(req => req.RequestItem == articleCount[req.ArticleCode]);
+                        .Where(req => req.RequestItem == payload.ArticleCount[req.ArticleCode]);
                     var requestHeader = await potigianContext.RequestHeaders
                         .FirstAsync(req => req.DocumentPrefix == prefixDoc && req.DocumentCode == doc && req.DocumentSuffix == suffixDoc);
 
@@ -178,7 +178,7 @@ namespace PotigianHH.Controllers
                     if (unfinishedRequestDetails.Count() > 0)
                     {
                         var missingRequestDetails = unfinishedRequestDetails
-                            .Select(req => new RequestMissingDetails(req, articleCount[req.ArticleCode]))
+                            .Select(req => new RequestMissingDetails(req, payload.ArticleCount[req.ArticleCode]))
                             .ToList();
                         var requestsToRemove = requestDetails.Where(reqDetail => !finishedRequestDetails.Any(
                             fReq => reqDetail.DocumentCode == fReq.DocumentCode &&
@@ -194,7 +194,7 @@ namespace PotigianHH.Controllers
 
                         foreach (var request in requestsToUpdate)
                         {
-                            request.PackagesGrams = request.PackagesGrams - articleCount[request.ArticleCode];
+                            request.PackagesGrams = request.PackagesGrams - payload.ArticleCount[request.ArticleCode];
                             request.ArticleTotal = request.PackagesGrams * request.FinalArticleUnitaryPrice;
                         }
 
@@ -222,6 +222,9 @@ namespace PotigianHH.Controllers
 
                     requestHeader.SituationCode = Config.Requests.StateClosed;
                     requestHeader.SituationDate = DateTime.Now;
+                    requestHeader.PreparerDate = DateTime.Now;
+                    requestHeader.Printer = payload.Printer;
+
                     potigianContext.Update(requestHeader);
 
                     potigianContext.RequestPreparations.Add(preparation);
