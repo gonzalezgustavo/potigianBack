@@ -56,8 +56,8 @@ namespace PotigianHH.Controllers
             return await RequestsHandler.HandleAsyncRequest(
                 async () =>
                 {
-                    var requestPreparation = await potigianContext.RequestPreparations.FirstOrDefaultAsync(rp => rp.DocumentSuffix == suffixDoc);
-                    if (requestPreparation == null) // new entry
+                    var requestPreparations = potigianContext.RequestPreparations.Where(rp => rp.DocumentSuffix == suffixDoc);
+                    if (await requestPreparations.CountAsync() == 0) // new entry
                     {
                         var preparation = new RequestPreparation
                         {
@@ -72,6 +72,22 @@ namespace PotigianHH.Controllers
                         potigianContext.Add(preparation);
 
                         await potigianContext.SaveChangesAsync();
+                    } 
+                    else
+                    {
+                        var preparation = await requestPreparations.FirstAsync();
+
+                        if (preparation.StartDate == null)
+                        {
+                            preparation.Code = preparer.ToString();
+                            preparation.StartDate = DateTime.Now;
+                            preparation.EndDate = null;
+                            preparation.StatusCode = Config.Requests.StateInPreparation;
+
+                            potigianContext.Update(preparation);
+
+                            await potigianContext.SaveChangesAsync();
+                        }
                     }
 
                     return true;

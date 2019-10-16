@@ -14,6 +14,7 @@ namespace PotigianHH.Model
         public char? MovementFlag { get; set; }
 
         [Column("U_DOC_SUFIJO")]
+        [Key]
         public decimal? DocumentSuffix { get; set; }
 
         [Column("F_ALTA_SIST")]
