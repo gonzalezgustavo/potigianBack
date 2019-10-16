@@ -200,13 +200,6 @@ namespace PotigianHH.Controllers
                     var requestHeader = await potigianContext.RequestHeaders
                         .FirstAsync(req => req.DocumentPrefix == prefixDoc && req.DocumentCode == doc && req.DocumentSuffix == suffixDoc);
 
-                    requestHeader.SituationCode = Config.Requests.StateClosed;
-                    requestHeader.SituationDate = DateTime.Now;
-                    requestHeader.PreparerDate = DateTime.Now;
-                    requestHeader.Printer = payload.Printer;
-
-                    potigianContext.Update(requestHeader);
-
                     // Unfinished requests case
                     if (unfinishedRequestDetails.Count() > 0)
                     {
@@ -242,6 +235,12 @@ namespace PotigianHH.Controllers
                         EndDate = DateTime.Now,
                     };
 
+                    requestHeader.SituationCode = Config.Requests.StateClosed;
+                    requestHeader.SituationDate = DateTime.Now;
+                    requestHeader.PreparerDate = DateTime.Now;
+                    requestHeader.Printer = payload.Printer;
+
+                    potigianContext.Update(requestHeader);
                     potigianContext.RequestPreparations.Add(preparation);
 
                     await potigianContext.SaveChangesAsync();
