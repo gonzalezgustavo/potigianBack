@@ -174,17 +174,19 @@ namespace PotigianHH.Controllers
                     var requestHeader = await potigianContext.RequestHeaders
                         .FirstAsync(req => req.DocumentPrefix == prefixDoc && req.DocumentCode == doc && req.DocumentSuffix == suffixDoc);
 
+                    requestHeader.SituationCode = Config.Requests.StateClosed;
+                    requestHeader.SituationDate = DateTime.Now;
+                    requestHeader.PreparerDate = DateTime.Now;
+                    requestHeader.Printer = payload.Printer;
+
+                    potigianContext.Update(requestHeader);
+
                     // Unfinished requests case
                     if (unfinishedRequestDetails.Count() > 0)
                     {
                         var missingRequestDetails = unfinishedRequestDetails
                             .Select(req => new RequestMissingDetails(req, payload.ArticleCount[req.ArticleCode]))
                             .ToList();
-                        var requestsToRemove = requestDetails.Where(reqDetail => !finishedRequestDetails.Any(
-                            fReq => reqDetail.DocumentCode == fReq.DocumentCode &&
-                                      reqDetail.DocumentPrefix == fReq.DocumentPrefix &&
-                                      reqDetail.DocumentSuffix == fReq.DocumentSuffix &&
-                                      reqDetail.ArticleCode == fReq.ArticleCode));
 
                         var requestsToUpdate = requestDetails.Where(reqDetail => !unfinishedRequestDetails.Any(
                             unfReq => reqDetail.DocumentCode == unfReq.DocumentCode &&
@@ -199,7 +201,6 @@ namespace PotigianHH.Controllers
                         }
 
                         potigianContext.RequestMissingDetails.AddRange(missingRequestDetails);
-                        potigianContext.RequestDetails.RemoveRange(requestsToRemove);
                         potigianContext.RequestDetails.UpdateRange(requestsToUpdate);
 
                         await potigianContext.SaveChangesAsync();
@@ -219,13 +220,6 @@ namespace PotigianHH.Controllers
                         StatusCode = Config.Requests.StateClosed,
                         EndDate = DateTime.Now,
                     };
-
-                    requestHeader.SituationCode = Config.Requests.StateClosed;
-                    requestHeader.SituationDate = DateTime.Now;
-                    requestHeader.PreparerDate = DateTime.Now;
-                    requestHeader.Printer = payload.Printer;
-
-                    potigianContext.Update(requestHeader);
 
                     potigianContext.RequestPreparations.Add(preparation);
 
