@@ -251,20 +251,14 @@ namespace PotigianHH.Controllers
                             .Select(req => new RequestMissingDetails(req, payload.ArticleCount[req.ArticleCode]))
                             .ToList();
 
-                        var requestsToUpdate = requestDetails.Where(reqDetail => !unfinishedRequestDetails.Any(
-                            unfReq => reqDetail.DocumentCode == unfReq.DocumentCode &&
-                                      reqDetail.DocumentPrefix == unfReq.DocumentPrefix &&
-                                      reqDetail.DocumentSuffix == unfReq.DocumentSuffix &&
-                                      reqDetail.ArticleCode == unfReq.ArticleCode));
-
-                        foreach (var request in requestsToUpdate)
+                        foreach (var request in unfinishedRequestDetails)
                         {
                             request.PackagesGrams = payload.ArticleCount[request.ArticleCode];
-                            request.ArticleTotal = request.PackagesGrams * request.FinalArticleUnitaryPrice;
+                            request.ArticleTotal = request.PackagesGrams * request.ArticleUnitaryPrice;
                         }
 
                         potigianContext.RequestMissingDetails.AddRange(missingRequestDetails);
-                        potigianContext.RequestDetails.UpdateRange(requestsToUpdate);
+                        potigianContext.RequestDetails.UpdateRange(unfinishedRequestDetails);
 
                         await potigianContext.SaveChangesAsync();
 
