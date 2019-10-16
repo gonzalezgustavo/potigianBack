@@ -50,6 +50,34 @@ namespace PotigianHH.Controllers
                 .ToListAsync());
         }
 
+        [HttpPost("cabe/asignados/{prefixDoc}/{doc}/{suffixDoc}/start/{preparer}")]
+        public async Task<ActionResult<Response<bool>>> StartRequest(int prefixDoc, int doc, int suffixDoc, int preparer)
+        {
+            return await RequestsHandler.HandleAsyncRequest(
+                async () =>
+                {
+                    var requestPreparation = await potigianContext.RequestPreparations.FirstOrDefaultAsync(rp => rp.DocumentSuffix == suffixDoc);
+                    if (requestPreparation == null) // new entry
+                    {
+                        var preparation = new RequestPreparation
+                        {
+                            Code = preparer.ToString(),
+                            DocumentSuffix = suffixDoc,
+                            InsertDate = DateTime.Now,
+                            StartDate = DateTime.Now,
+                            StatusCode = Config.Requests.StateInPreparation,
+                            EndDate = null,
+                        };
+
+                        potigianContext.Add(preparation);
+
+                        await potigianContext.SaveChangesAsync();
+                    }
+
+                    return true;
+                });
+        }
+
         [HttpPost("cabe/asignados/{preparer}/clear")]
         public async Task<ActionResult<Response<bool>>> ClearAssignedRequestsFromPreparer(int preparer)
         {
@@ -224,24 +252,17 @@ namespace PotigianHH.Controllers
                         closedComplete = false;
                     }
 
-                    // Success!
-                    var preparation = new RequestPreparation
-                    {
-                        Code = requestHeader.PreparerCode.ToString(),
-                        DocumentSuffix = suffixDoc,
-                        InsertDate = DateTime.Now,
-                        StartDate = requestHeader.SituationDate,
-                        StatusCode = Config.Requests.StateClosed,
-                        EndDate = DateTime.Now,
-                    };
+                    var preparation = await potigianContext.RequestPreparations.FirstAsync(p => p.DocumentSuffix == suffixDoc);
+                    preparation.EndDate = DateTime.Now;
+                    preparation.StatusCode = Config.Requests.StateClosed;
 
                     requestHeader.SituationCode = Config.Requests.StateClosed;
                     requestHeader.SituationDate = DateTime.Now;
                     requestHeader.PreparerDate = DateTime.Now;
                     requestHeader.Printer = payload.Printer;
 
-                    potigianContext.Update(requestHeader);
-                    potigianContext.RequestPreparations.Add(preparation);
+                    potigianContext.RequestHeaders.Update(requestHeader);
+                    potigianContext.RequestPreparations.Update(preparation);
 
                     await potigianContext.SaveChangesAsync();
 

@@ -20,10 +20,10 @@ namespace PotigianHH.Model
         public DateTime InsertDate { get; set; }
 
         [Column("F_INICIO")]
-        public DateTime StartDate { get; set; }
+        public DateTime? StartDate { get; set; }
 
         [Column("F_FIN")]
-        public DateTime EndDate { get; set; }
+        public DateTime? EndDate { get; set; }
 
         [Column("C_ESTADO")]
         public int? StatusCode { get; set; }
