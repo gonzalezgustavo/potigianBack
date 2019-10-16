@@ -187,6 +187,8 @@ namespace PotigianHH.Controllers
             return await RequestsHandler.HandleAsyncRequest(
                 async () =>
                 {
+                    bool closedComplete = true;
+
                     var requestDetails = await potigianContext.RequestDetails
                         .Where(req =>
                             req.DocumentPrefix == prefixDoc &&
@@ -226,17 +228,12 @@ namespace PotigianHH.Controllers
 
                         potigianContext.RequestMissingDetails.AddRange(missingRequestDetails);
                         potigianContext.RequestDetails.UpdateRange(requestsToUpdate);
-
-                        await potigianContext.SaveChangesAsync();
-
-                        return false;
+                        closedComplete = false;
                     }
 
                     // Success!
                     var preparation = new RequestPreparation
                     {
-                        // TBD
-                        // MovementFlag = ?
                         Code = requestHeader.PreparerCode.ToString(),
                         DocumentSuffix = suffixDoc,
                         InsertDate = DateTime.Now,
@@ -249,7 +246,7 @@ namespace PotigianHH.Controllers
 
                     await potigianContext.SaveChangesAsync();
 
-                    return true;
+                    return closedComplete;
                 });
         }
     }
