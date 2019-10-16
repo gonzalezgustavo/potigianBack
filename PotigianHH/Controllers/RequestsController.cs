@@ -50,6 +50,30 @@ namespace PotigianHH.Controllers
                 .ToListAsync());
         }
 
+        [HttpDelete("cabe/asignados/{preparer}")]
+        public async Task<ActionResult<Response<bool>>> ClearAssignedRequestsFromPreparer(int preparer)
+        {
+            return await RequestsHandler.HandleAsyncRequest(
+                async () =>
+                {
+                    var assignedRequests = await potigianContext.RequestHeaders
+                    .Where(req =>
+                        (req.PreparerCode == preparer.ToString() || req.PreparerCode == $"CSPRP{preparer}") && req.SituationCode == Config.Requests.StateInPreparation)
+                    .ToListAsync();
+
+                    assignedRequests.ForEach(r =>
+                    {
+                        r.SituationCode = Config.Requests.StateAvailableToPrepare;
+                        r.SituationDate = DateTime.Now;
+                        r.PreparerCode = null;
+
+                        potigianContext.Update(r);
+                    });
+
+                    return true;
+                });
+        }
+
         [HttpPost("cabe/asignados/{preparer}")]
         public async Task<ActionResult<Response<List<RequestHeaders>>>> AssignRequestsHeadersToPreparer(int preparer, [FromQuery(Name = "cigarrillos")] bool cigarettesOnly)
         {
