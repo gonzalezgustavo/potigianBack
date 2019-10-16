@@ -265,6 +265,9 @@ namespace PotigianHH.Controllers
 
                         potigianContext.RequestMissingDetails.AddRange(missingRequestDetails);
                         potigianContext.RequestDetails.UpdateRange(requestsToUpdate);
+
+                        await potigianContext.SaveChangesAsync();
+
                         closedComplete = false;
                     }
 
