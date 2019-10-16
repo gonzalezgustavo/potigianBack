@@ -194,9 +194,7 @@ namespace PotigianHH.Controllers
                             req.DocumentSuffix == suffixDoc)
                         .ToListAsync();
                     var unfinishedRequestDetails = requestDetails
-                        .Where(req => req.RequestItem != payload.ArticleCount[req.ArticleCode]);
-                    var finishedRequestDetails = requestDetails
-                        .Where(req => req.RequestItem == payload.ArticleCount[req.ArticleCode]);
+                        .Where(req => req.PackagesGrams != payload.ArticleCount[req.ArticleCode]);
                     var requestHeader = await potigianContext.RequestHeaders
                         .FirstAsync(req => req.DocumentPrefix == prefixDoc && req.DocumentCode == doc && req.DocumentSuffix == suffixDoc);
 
