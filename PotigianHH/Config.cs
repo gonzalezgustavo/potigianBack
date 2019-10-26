@@ -2,6 +2,8 @@
 {
     public static class Config
     {
+        public const string ProgramCode = "SD03P053";
+
         public static class Requests
         {
             public const int StateAvailableToPrepare = 6;

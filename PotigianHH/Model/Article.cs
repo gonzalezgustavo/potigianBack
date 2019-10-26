@@ -30,5 +30,8 @@ namespace PotigianHH.Model
 
         [Column("C_EAN_ALTERNATIVO_4")]
         public string AlternativeEanCode4 { get; set; }
+
+        [Column("M_VENDE_POR_PESO")]
+        public char SellByWeight { get; set; }
     }
 }

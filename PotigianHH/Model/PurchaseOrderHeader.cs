@@ -27,6 +27,12 @@ namespace PotigianHH.Model
         [Column("C_COMPRADOR")]
         public decimal BuyerCode { get; set; }
 
+        [Column("C_SUCU_DESTINO_ALT")]
+        public decimal AlternativeDestinationBranch { get; set; }
+
+        [Column("M_OC_MADRE")]
+        public char MotherFlag { get; set; }
+
         [NotMapped]
         public int Items { get; set; }
     }

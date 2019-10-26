@@ -17,6 +17,15 @@ namespace PotigianHH.Model
         [Column("C_ARTICULO")]
         public decimal ArticleCode { get; set; }
 
+        [Column("Q_BULTOS_EMPR_PED")]
+        public decimal RequestedPackages { get; set; }
+
+        [Column("Q_BULTOS_PROV_PED")]
+        public decimal RequestedBulks { get; set; }
+
+        [Column("Q_FACTOR_PROV_PED")]
+        public decimal RequestedFactor { get; set; }
+
         [NotMapped]
         public string ArticleName { get; set; }
 
@@ -38,6 +47,9 @@ namespace PotigianHH.Model
         [NotMapped]
         public string AlternativeEanCode4 { get; set; }
 
+        [NotMapped]
+        public decimal ProviderFactor { get; set; }
+
         public PurchaseOrderDetails Append(Article article)
         {
             ArticleName = article.Name;
@@ -47,6 +59,13 @@ namespace PotigianHH.Model
             AlternativeEanCode2 = article.AlternativeEanCode2;
             AlternativeEanCode3 = article.AlternativeEanCode3;
             AlternativeEanCode4 = article.AlternativeEanCode4;
+
+            return this;
+        }
+
+        public PurchaseOrderDetails Append(ProviderArticle providerArticle)
+        {
+            ProviderFactor = providerArticle.ProviderFactor;
 
             return this;
         }
