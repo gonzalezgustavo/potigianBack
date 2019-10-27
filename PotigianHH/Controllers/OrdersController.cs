@@ -109,108 +109,116 @@ namespace PotigianHH.Controllers
 
                     var response = new SynchronizeOrderResponse();
 
-                    // CABE Procedure
+                    try
                     {
-                        var prefixParam = new SqlParameter("@U_PREFIJO_OC", value: decimal.Parse(prefixCode));
-                        var suffixParam = new SqlParameter("@U_SUFIJO_OC", value: decimal.Parse(suffixCode));
-                        var situationParam = new SqlParameter("@C_SITUAC_OC", value: (decimal)(detailsPending.Any() ? 1 : 2)); // 1 pending - 2 ready
-                        var receivedGoodsDateParam = new SqlParameter("@f_comp_ing_merc", value: payload.OrderAdditionalInfo.Date);
-                        var receivedGoodsCodeParam = new SqlParameter("@C_COMP_ING_MERC", value: payload.OrderAdditionalInfo.BillType);
-                        var purchasePrefixParam = new SqlParameter("@U_PREFIJO_COMP_ING_MERC", value: payload.OrderAdditionalInfo.PrefixOc);
-                        var purchaseSuffixParam = new SqlParameter("@U_SUFIJO_COMP_ING_MERC", value: payload.OrderAdditionalInfo.SuffixOc);
-                        var observationParam = new SqlParameter("@D_OBSERVACION_ING_MERC", value: payload.OrderAdditionalInfo.Observations);
-                        var userParam = new SqlParameter("@vchUsuario", value: payload.OrderAdditionalInfo.User);
-                        var terminalParam = new SqlParameter("@vchTerminal", value: payload.OrderAdditionalInfo.Terminal);
-                        var outputMessageParam = new SqlParameter
+                        // CABE Procedure
                         {
-                            ParameterName = "@vchMensaje",
-                            Value = "",
-                            Direction = ParameterDirection.Output,
-                            SqlDbType = SqlDbType.VarChar,
-                            Size = 255
-                        };
-                        var returnCode = new SqlParameter
+                            var prefixParam = new SqlParameter("@U_PREFIJO_OC", value: decimal.Parse(prefixCode));
+                            var suffixParam = new SqlParameter("@U_SUFIJO_OC", value: decimal.Parse(suffixCode));
+                            var situationParam = new SqlParameter("@C_SITUAC_OC", value: (decimal)(detailsPending.Any() ? 1 : 2)); // 1 pending - 2 ready
+                            var receivedGoodsDateParam = new SqlParameter("@f_comp_ing_merc", value: payload.OrderAdditionalInfo.Date);
+                            var receivedGoodsCodeParam = new SqlParameter("@C_COMP_ING_MERC", value: (decimal)payload.OrderAdditionalInfo.BillType);
+                            var purchasePrefixParam = new SqlParameter("@U_PREFIJO_COMP_ING_MERC", value: payload.OrderAdditionalInfo.PrefixOc);
+                            var purchaseSuffixParam = new SqlParameter("@U_SUFIJO_COMP_ING_MERC", value: payload.OrderAdditionalInfo.SuffixOc);
+                            var observationParam = new SqlParameter("@D_OBSERVACION_ING_MERC", value: payload.OrderAdditionalInfo.Observations);
+                            var userParam = new SqlParameter("@vchUsuario", value: payload.OrderAdditionalInfo.User);
+                            var terminalParam = new SqlParameter("@vchTerminal", value: payload.OrderAdditionalInfo.Terminal);
+                            var outputMessageParam = new SqlParameter
+                            {
+                                ParameterName = "@vchMensaje",
+                                Value = "",
+                                Direction = ParameterDirection.Output,
+                                SqlDbType = SqlDbType.VarChar,
+                                Size = 255
+                            };
+                            var returnCode = new SqlParameter
+                            {
+                                ParameterName = "@returnCode",
+                                Value = -1,
+                                Direction = ParameterDirection.Output,
+                            };
+
+                            await potigianContext.Database.ExecuteSqlCommandAsync("EXEC @returnCode = dbo.SD03_OC_ING_MERC_ACTU_CABE_BOREALTEST " +
+                                "@U_PREFIJO_OC, @U_SUFIJO_OC, @C_SITUAC_OC, @f_comp_ing_merc, @C_COMP_ING_MERC, " +
+                                "@U_PREFIJO_COMP_ING_MERC, @U_SUFIJO_COMP_ING_MERC, @D_OBSERVACION_ING_MERC, " +
+                                "@vchUsuario, @vchTerminal, @vchMensaje OUTPUT", returnCode, prefixParam, suffixParam, situationParam,
+                                receivedGoodsDateParam, receivedGoodsCodeParam, purchasePrefixParam, purchaseSuffixParam,
+                                observationParam, userParam, terminalParam, outputMessageParam);
+
+                            response.HeaderMessage = (string)outputMessageParam.Value;
+                            response.HeaderReturnCode = (int)returnCode.Value;
+                        }
+
+                        // DETA PROCEDURE
+                        foreach (var orderDetail in orderDetails)
                         {
-                            ParameterName = "@returnCode",
-                            Value = -1,
-                            Direction = ParameterDirection.Output,
-                        };
+                            var ocParam = new SqlParameter("@C_OC", value: decimal.Parse(ocCode));
+                            var companyBranchParam = new SqlParameter("@C_SUCU_EMPR", value: payload.OrderAdditionalInfo.Branch);
+                            var destinationBranchParam = new SqlParameter("@C_SUCU_DESTINO_ALT", value: orderHeader.AlternativeDestinationBranch);
+                            var prefixOcParam = new SqlParameter("@U_PREFIJO_OC", value: decimal.Parse(prefixCode));
+                            var suffixOcParam = new SqlParameter("@U_SUFIJO_OC", value: decimal.Parse(suffixCode));
+                            var ocMotherParam = new SqlParameter("@M_OC_MADRE", value: orderHeader.MotherFlag);
+                            var situationCodeParam = new SqlParameter("@C_SITUAC_OC", value: (decimal)(detailsPending.Any(d => d.ArticleCode == orderDetail.ArticleCode) ? 1 : 2)); // 1 pending - 2 ready
+                            var articleCodeParam = new SqlParameter("@C_ARTICULO", value: orderDetail.ArticleCode);
+                            var saleByWeightParam = new SqlParameter("@M_VENDE_POR_PESO", value: articles.First(a => a.Code == orderDetail.ArticleCode).SellByWeight);
+                            var requestedUnitsParam = new SqlParameter("@Q_UNID_KGS_PED", value: orderDetail.RequestedPackages);
+                            var deliveredUnitsParam = new SqlParameter("@Q_UNID_KGS_CUMPL", value: payload.ArticleCount[orderDetail.ArticleCode]);
+                            var pendingUnitsParam = new SqlParameter("@Q_UNID_KGS_PEND", value: orderDetail.RequestedPackages - payload.ArticleCount[orderDetail.ArticleCode]);
+                            var receivedUnitsParam = new SqlParameter("@Q_UNID_KGS_ING", value: orderDetail.RequestedPackages);
+                            var receivedPacksParam = new SqlParameter("@Q_BULTOS_KGS_ING", value: orderDetail.RequestedBulks);
+                            var receivedPiecesFactorParam = new SqlParameter("@Q_FACTOR_PIEZAS_ING", value: orderDetail.RequestedFactor);
+                            var receivedGoodsBoughtParam = new SqlParameter("@C_COMP_ING_MERC", value: payload.OrderAdditionalInfo.BillType);
+                            var receivedGoodsPrefixParam = new SqlParameter("@U_PREFIJO_COMP_ING_MERC", value: payload.OrderAdditionalInfo.PrefixOc);
+                            var receivedGoodsSuffixParam = new SqlParameter("@U_SUFIJO_COMP_ING_MERC", value: payload.OrderAdditionalInfo.SuffixOc);
+                            var goodsDateParam = new SqlParameter("@F_COMP_ING_MERC", value: payload.OrderAdditionalInfo.Date);
+                            var programCodeParam = new SqlParameter("@C_PROGRAMA", value: Config.ProgramCode);
+                            var observationParam = new SqlParameter("@D_OBSERVACION", value: payload.OrderAdditionalInfo.Observations);
+                            var userParam = new SqlParameter("@vchUsuario", value: payload.OrderAdditionalInfo.User);
+                            var terminalParam = new SqlParameter("@vchTerminal", value: payload.OrderAdditionalInfo.Terminal);
+                            var outputMessageParam = new SqlParameter
+                            {
+                                ParameterName = "@vchMensaje",
+                                Value = "",
+                                Direction = ParameterDirection.Output,
+                                SqlDbType = SqlDbType.VarChar,
+                                Size = 255
+                            };
+                            var returnCode = new SqlParameter
+                            {
+                                ParameterName = "@returnCode",
+                                Value = -1,
+                                Direction = ParameterDirection.Output
+                            };
 
-                        await potigianContext.Database.ExecuteSqlCommandAsync("EXEC @returnCode = dbo.SD03_OC_ING_MERC_ACTU_CABE " +
-                            "@U_PREFIJO_OC, @U_SUFIJO_OC, @C_SITUAC_OC, @f_comp_ing_merc, @C_COMP_ING_MERC, " +
-                            "@U_PREFIJO_COMP_ING_MERC, @U_SUFIJO_COMP_ING_MERC, @D_OBSERVACION_ING_MERC, " +
-                            "@vchUsuario, @vchTerminal, @vchMensaje OUTPUT", returnCode, prefixParam, suffixParam, situationParam,
-                            receivedGoodsDateParam, receivedGoodsCodeParam, purchasePrefixParam, purchaseSuffixParam,
-                            observationParam, userParam, terminalParam, outputMessageParam);
+                            await potigianContext.Database.ExecuteSqlCommandAsync("EXEC @returnCode = dbo.SD03_OC_ING_MERC_ACTU_DETA_BOREALTEST " +
+                                "@C_OC, @C_SUCU_EMPR, @C_SUCU_DESTINO_ALT, @U_PREFIJO_OC, @U_SUFIJO_OC, @M_OC_MADRE, @C_SITUAC_OC, " +
+                                "@C_ARTICULO, @M_VENDE_POR_PESO, @Q_UNID_KGS_PED, @Q_UNID_KGS_CUMPL, @Q_UNID_KGS_PEND, " +
+                                "@Q_UNID_KGS_ING, @Q_BULTOS_KGS_ING, @Q_FACTOR_PIEZAS_ING, @C_COMP_ING_MERC, " +
+                                "@U_PREFIJO_COMP_ING_MERC, @U_SUFIJO_COMP_ING_MERC, @F_COMP_ING_MERC, @C_PROGRAMA, @D_OBSERVACION, " +
+                                "@vchUsuario, @vchTerminal, @vchMensaje OUTPUT", returnCode, ocParam, companyBranchParam, destinationBranchParam,
+                                prefixOcParam, suffixOcParam, ocMotherParam, situationCodeParam, articleCodeParam,
+                                saleByWeightParam, requestedUnitsParam, deliveredUnitsParam, pendingUnitsParam, receivedUnitsParam,
+                                receivedPacksParam, receivedPiecesFactorParam, receivedGoodsBoughtParam, receivedGoodsPrefixParam,
+                                receivedGoodsSuffixParam, goodsDateParam, programCodeParam, observationParam, userParam,
+                                terminalParam, outputMessageParam);
 
-                        response.HeaderMessage = (string) outputMessageParam.Value;
-                        response.HeaderReturnCode = (int) returnCode.Value;
+                            response.DetailInfo.Add(new SynchronizeOrderDetail
+                            {
+                                ArticleCode = orderDetail.ArticleCode,
+                                DetailMessage = (string)outputMessageParam.Value,
+                                DetailReturnCode = (int)returnCode.Value
+                            });
+                        }
+
+                        potigianContext.Database.CommitTransaction();
+
+                        return response;
                     }
-
-                    // DETA PROCEDURE
-                    foreach (var orderDetail in orderDetails)
+                    catch (SqlException)
                     {
-                        var ocParam = new SqlParameter("@C_OC", value: decimal.Parse(ocCode));
-                        var companyBranchParam = new SqlParameter("@C_SUCU_EMPR", value: payload.OrderAdditionalInfo.Branch);
-                        var destinationBranchParam = new SqlParameter("@C_SUCU_DESTINO_ALT", value: orderHeader.AlternativeDestinationBranch);
-                        var prefixOcParam = new SqlParameter("@U_PREFIJO_OC", value: decimal.Parse(prefixCode));
-                        var suffixOcParam = new SqlParameter("@U_SUFIJO_OC", value: decimal.Parse(suffixCode));
-                        var ocMotherParam = new SqlParameter("@M_OC_MADRE", value: orderHeader.MotherFlag);
-                        var situationCodeParam = new SqlParameter("@C_SITUAC_OC", value: (decimal)(detailsPending.Any(d => d.ArticleCode == orderDetail.ArticleCode) ? 1 : 2)); // 1 pending - 2 ready
-                        var articleCodeParam = new SqlParameter("@C_ARTICULO", value: orderDetail.ArticleCode);
-                        var saleByWeightParam = new SqlParameter("@M_VENDE_POR_PESO", value: articles.First(a => a.Code == orderDetail.ArticleCode).SellByWeight);
-                        var requestedUnitsParam = new SqlParameter("@Q_UNID_KGS_PED", value: orderDetail.RequestedPackages);
-                        var deliveredUnitsParam = new SqlParameter("@Q_UNID_KGS_CUMPL", value: payload.ArticleCount[orderDetail.ArticleCode]);
-                        var pendingUnitsParam = new SqlParameter("@Q_UNID_KGS_PEND", value: orderDetail.RequestedPackages - payload.ArticleCount[orderDetail.ArticleCode]);
-                        var receivedUnitsParam = new SqlParameter("@Q_UNID_KGS_ING", value: orderDetail.RequestedPackages);
-                        var receivedPacksParam = new SqlParameter("@Q_BULTOS_KGS_ING", value: orderDetail.RequestedBulks);
-                        var receivedPiecesFactorParam = new SqlParameter("@Q_FACTOR_PIEZAS_ING", value: orderDetail.RequestedFactor);
-                        var receivedGoodsBoughtParam = new SqlParameter("@C_COMP_ING_MERC", value: payload.OrderAdditionalInfo.BillType);
-                        var receivedGoodsPrefixParam = new SqlParameter("@U_PREFIJO_COMP_ING_MERC", value: payload.OrderAdditionalInfo.PrefixOc);
-                        var receivedGoodsSuffixParam = new SqlParameter("@U_SUFIJO_COMP_ING_MERC", value: payload.OrderAdditionalInfo.SuffixOc);
-                        var goodsDateParam = new SqlParameter("@F_COMP_ING_MERC", value: payload.OrderAdditionalInfo.Date);
-                        var programCodeParam = new SqlParameter("@C_PROGRAMA", value: Config.ProgramCode);
-                        var observationParam = new SqlParameter("@D_OBSERVACION", value: payload.OrderAdditionalInfo.Observations);
-                        var userParam = new SqlParameter("@vchUsuario", value: payload.OrderAdditionalInfo.User);
-                        var terminalParam = new SqlParameter("@vchTerminal", value: payload.OrderAdditionalInfo.Terminal);
-                        var outputMessageParam = new SqlParameter
-                        {
-                            ParameterName = "@vchMensaje",
-                            Value = "",
-                            Direction = ParameterDirection.Output,
-                            SqlDbType = SqlDbType.VarChar,
-                            Size = 255
-                        };
-                        var returnCode = new SqlParameter
-                        {
-                            ParameterName = "@returnCode",
-                            Value = -1,
-                            Direction = ParameterDirection.Output
-                        };
-
-                        await potigianContext.Database.ExecuteSqlCommandAsync("EXEC @returnCode = dbo.SD03_OC_ING_MERC_ACTU_DETA " +
-                            "@C_OC, @C_SUCU_EMPR, @C_SUCU_DESTINO_ALT, @U_PREFIJO_OC, @U_SUFIJO_OC, @M_OC_MADRE, @C_SITUAC_OC, " +
-                            "@C_ARTICULO, @M_VENDE_POR_PESO, @Q_UNID_KGS_PED, @Q_UNID_KGS_CUMPL, @Q_UNID_KGS_PEND, " +
-                            "@Q_UNID_KGS_ING, @Q_BULTOS_KGS_ING, @Q_FACTOR_PIEZAS_ING, @C_COMP_ING_MERC, " +
-                            "@U_PREFIJO_COMP_ING_MERC, @U_SUFIJO_COMP_ING_MERC, @F_COMP_ING_MERC, @C_PROGRAMA, @D_OBSERVACION, " +
-                            "@vchUsuario, @vchTerminal, @vchMensaje OUTPUT", returnCode, ocParam, companyBranchParam, destinationBranchParam,
-                            prefixOcParam, suffixOcParam, ocMotherParam, situationCodeParam, articleCodeParam,
-                            saleByWeightParam, requestedUnitsParam, deliveredUnitsParam, pendingUnitsParam, receivedUnitsParam,
-                            receivedPacksParam, receivedPiecesFactorParam, receivedGoodsBoughtParam, receivedGoodsPrefixParam,
-                            receivedGoodsSuffixParam, goodsDateParam, programCodeParam, observationParam, userParam,
-                            terminalParam, outputMessageParam);
-
-                        response.DetailInfo.Add(new SynchronizeOrderDetail
-                        {
-                            ArticleCode = orderDetail.ArticleCode,
-                            DetailMessage = (string)outputMessageParam.Value,
-                            DetailReturnCode = (int)returnCode.Value
-                        });
+                        potigianContext.Database.RollbackTransaction();
+                        throw;
                     }
-
-                    potigianContext.Database.CommitTransaction();
-
-                    return response;
                 });
         }
     }
