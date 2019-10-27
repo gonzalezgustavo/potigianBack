@@ -113,6 +113,7 @@ namespace PotigianHH.Controllers
                     {
                         // CABE Procedure
                         {
+                            var ocParam = new SqlParameter("@C_OC", value: decimal.Parse(ocCode));
                             var prefixParam = new SqlParameter("@U_PREFIJO_OC", value: decimal.Parse(prefixCode));
                             var suffixParam = new SqlParameter("@U_SUFIJO_OC", value: decimal.Parse(suffixCode));
                             var situationParam = new SqlParameter("@C_SITUAC_OC", value: (decimal)(detailsPending.Any() ? 1 : 2)); // 1 pending - 2 ready
@@ -138,12 +139,12 @@ namespace PotigianHH.Controllers
                                 Direction = ParameterDirection.Output,
                             };
 
-                            await potigianContext.Database.ExecuteSqlCommandAsync("EXEC @returnCode = dbo.SD03_OC_ING_MERC_ACTU_CABE_BOREALTEST " +
-                                "@U_PREFIJO_OC, @U_SUFIJO_OC, @C_SITUAC_OC, @f_comp_ing_merc, @C_COMP_ING_MERC, " +
+                            await potigianContext.Database.ExecuteSqlCommandAsync("EXEC @returnCode = dbo.SD03_OC_ING_MERC_ACTU_CABE " +
+                                "@C_OC, @U_PREFIJO_OC, @U_SUFIJO_OC, @C_SITUAC_OC, @f_comp_ing_merc, @C_COMP_ING_MERC, " +
                                 "@U_PREFIJO_COMP_ING_MERC, @U_SUFIJO_COMP_ING_MERC, @D_OBSERVACION_ING_MERC, " +
-                                "@vchUsuario, @vchTerminal, @vchMensaje OUTPUT", returnCode, prefixParam, suffixParam, situationParam,
-                                receivedGoodsDateParam, receivedGoodsCodeParam, purchasePrefixParam, purchaseSuffixParam,
-                                observationParam, userParam, terminalParam, outputMessageParam);
+                                "@vchUsuario, @vchTerminal, @vchMensaje OUTPUT", returnCode, ocParam, prefixParam, suffixParam,
+                                situationParam, receivedGoodsDateParam, receivedGoodsCodeParam, purchasePrefixParam,
+                                purchaseSuffixParam, observationParam, userParam, terminalParam, outputMessageParam);
 
                             response.HeaderMessage = (string)outputMessageParam.Value;
                             response.HeaderReturnCode = (int)returnCode.Value;
@@ -152,6 +153,7 @@ namespace PotigianHH.Controllers
                         // DETA PROCEDURE
                         foreach (var orderDetail in orderDetails)
                         {
+                            var providerParam = new SqlParameter("@C_PROVEEDOR", value: orderHeader.ProviderCode);
                             var ocParam = new SqlParameter("@C_OC", value: decimal.Parse(ocCode));
                             var companyBranchParam = new SqlParameter("@C_SUCU_EMPR", value: payload.OrderAdditionalInfo.Branch);
                             var destinationBranchParam = new SqlParameter("@C_SUCU_DESTINO_ALT", value: orderHeader.AlternativeDestinationBranch);
@@ -190,13 +192,13 @@ namespace PotigianHH.Controllers
                                 Direction = ParameterDirection.Output
                             };
 
-                            await potigianContext.Database.ExecuteSqlCommandAsync("EXEC @returnCode = dbo.SD03_OC_ING_MERC_ACTU_DETA_BOREALTEST " +
-                                "@C_OC, @C_SUCU_EMPR, @C_SUCU_DESTINO_ALT, @U_PREFIJO_OC, @U_SUFIJO_OC, @M_OC_MADRE, @C_SITUAC_OC, " +
-                                "@C_ARTICULO, @M_VENDE_POR_PESO, @Q_UNID_KGS_PED, @Q_UNID_KGS_CUMPL, @Q_UNID_KGS_PEND, " +
+                            await potigianContext.Database.ExecuteSqlCommandAsync("EXEC @returnCode = dbo.SD03_OC_ING_MERC_ACTU_DETA " +
+                                "@C_PROVEEDOR, @C_OC, @C_SUCU_EMPR, @C_SUCU_DESTINO_ALT, @U_PREFIJO_OC, @U_SUFIJO_OC, @M_OC_MADRE, " +
+                                "@C_SITUAC_OC, @C_ARTICULO, @M_VENDE_POR_PESO, @Q_UNID_KGS_PED, @Q_UNID_KGS_CUMPL, @Q_UNID_KGS_PEND, " +
                                 "@Q_UNID_KGS_ING, @Q_BULTOS_KGS_ING, @Q_FACTOR_PIEZAS_ING, @C_COMP_ING_MERC, " +
                                 "@U_PREFIJO_COMP_ING_MERC, @U_SUFIJO_COMP_ING_MERC, @F_COMP_ING_MERC, @C_PROGRAMA, @D_OBSERVACION, " +
-                                "@vchUsuario, @vchTerminal, @vchMensaje OUTPUT", returnCode, ocParam, companyBranchParam, destinationBranchParam,
-                                prefixOcParam, suffixOcParam, ocMotherParam, situationCodeParam, articleCodeParam,
+                                "@vchUsuario, @vchTerminal, @vchMensaje OUTPUT", returnCode, providerParam, ocParam, companyBranchParam,
+                                destinationBranchParam, prefixOcParam, suffixOcParam, ocMotherParam, situationCodeParam, articleCodeParam,
                                 saleByWeightParam, requestedUnitsParam, deliveredUnitsParam, pendingUnitsParam, receivedUnitsParam,
                                 receivedPacksParam, receivedPiecesFactorParam, receivedGoodsBoughtParam, receivedGoodsPrefixParam,
                                 receivedGoodsSuffixParam, goodsDateParam, programCodeParam, observationParam, userParam,
