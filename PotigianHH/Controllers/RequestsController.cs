@@ -271,8 +271,8 @@ namespace PotigianHH.Controllers
 
                     requestHeader.SituationCode = Config.Requests.StateClosed;
                     requestHeader.SituationDate = DateTime.Now;
-                    requestHeader.PreparerDate = DateTime.Now;
                     requestHeader.Printer = payload.Printer;
+                    requestHeader.TotalPackages = payload.Bags;
 
                     potigianContext.RequestHeaders.Update(requestHeader);
                     potigianContext.RequestPreparations.Update(preparation);

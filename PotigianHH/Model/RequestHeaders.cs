@@ -72,9 +72,6 @@ namespace PotigianHH.Model
         [Column("C_PREPARADOR")]
         public string PreparerCode { get; set; }
 
-        [Column("F_PREPARACION")]
-        public DateTime? PreparerDate { get; set; }
-
         [Column("C_IMPRESORA")]
         public int Printer { get; set; }
     }
