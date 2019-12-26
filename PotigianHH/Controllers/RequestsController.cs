@@ -121,7 +121,11 @@ namespace PotigianHH.Controllers
         }
 
         [HttpPost("cabe/asignados/{preparer}")]
-        public async Task<ActionResult<Response<List<RequestHeaders>>>> AssignRequestsHeadersToPreparer(int preparer, [FromQuery(Name = "cigarrillos")] bool cigarettesOnly)
+        public async Task<ActionResult<Response<List<RequestHeaders>>>> AssignRequestsHeadersToPreparer(
+            int preparer, 
+            [FromQuery(Name = "cigarrillos")] bool cigarettesOnly,
+            [FromQuery(Name = "pedido")] int suffixNumber,
+            [FromQuery(Name = "reparto")] int deliveryNumber)
         {
             return await RequestsHandler.HandleAsyncRequest(
                 async () =>
@@ -137,9 +141,27 @@ namespace PotigianHH.Controllers
                         return assignedRequests;
                     }
 
-                    var newRequests = await potigianContext.RequestHeaders
-                        .Where(req => req.SituationCode == Config.Requests.StateAvailableToPrepare)
-                        .ToListAsync();
+                    var newRequests = default(List<RequestHeaders>);
+
+                    if (suffixNumber != 0)
+                    {
+                        newRequests = await potigianContext.RequestHeaders
+                            .Where(req => req.DocumentSuffix == suffixNumber && req.SituationCode == Config.Requests.StateAvailableToPrepare)
+                            .ToListAsync();
+                    }
+                    else if (deliveryNumber != 0)
+                    {
+                        newRequests = await potigianContext.RequestHeaders
+                            .Where(req => req.DistributionNumber == deliveryNumber && req.SituationCode == Config.Requests.StateAvailableToPrepare)
+                            .ToListAsync();
+                    }
+
+                    if (newRequests == default(List<RequestHeaders>) || newRequests.Count == 0)
+                    {
+                        newRequests = await potigianContext.RequestHeaders
+                            .Where(req => req.SituationCode == Config.Requests.StateAvailableToPrepare)
+                            .ToListAsync();
+                    }
 
                     var suffixes = newRequests.Select(req => req.DocumentSuffix).Distinct();
                     var prefixes = newRequests.Select(req => req.DocumentPrefix).Distinct();
@@ -153,9 +175,11 @@ namespace PotigianHH.Controllers
 
                     var definedRequests = newRequests.Where(req =>
                         {
-                            var details = requestsDetails.Where(det => req.DocumentSuffix == det.DocumentSuffix
-                                                                     && req.DocumentCode == det.DocumentCode
-                                                                     && req.DocumentPrefix == det.DocumentPrefix);
+                            var details = requestsDetails
+                                .Where(det => req.DocumentSuffix == det.DocumentSuffix
+                                           && req.DocumentCode == det.DocumentCode
+                                           && req.DocumentPrefix == det.DocumentPrefix);
+
                             bool areOnlyCigarettes = details.All(det => new List<decimal?>() { 1, 2 }.Contains(det.FamilyCode));
 
                             return cigarettesOnly ? areOnlyCigarettes : !areOnlyCigarettes;
