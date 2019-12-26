@@ -158,9 +158,7 @@ namespace PotigianHH.Controllers
 
                     if (newRequests == default(List<RequestHeaders>) || newRequests.Count == 0)
                     {
-                        newRequests = await potigianContext.RequestHeaders
-                            .Where(req => req.SituationCode == Config.Requests.StateAvailableToPrepare)
-                            .ToListAsync();
+                        return new List<RequestHeaders>();
                     }
 
                     var suffixes = newRequests.Select(req => req.DocumentSuffix).Distinct();
