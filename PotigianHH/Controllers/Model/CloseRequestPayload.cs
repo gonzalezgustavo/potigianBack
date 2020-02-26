@@ -4,7 +4,7 @@ namespace PotigianHH.Controllers.Model
 {
     public class CloseRequestPayload
     {
-        public IDictionary<decimal?, int> ArticleCount { get; set; }
+        public IDictionary<string, int> ArticleCount { get; set; }
 
         public int Printer { get; set; }
 

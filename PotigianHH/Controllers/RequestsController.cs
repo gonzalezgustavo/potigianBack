@@ -7,6 +7,8 @@ using PotigianHH.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace PotigianHH.Controllers
@@ -70,23 +72,32 @@ namespace PotigianHH.Controllers
                         };
 
                         potigianContext.Add(preparation);
+                        potigianContext.Add(PreparerProductivity.FromPreparation(preparation));
 
                         await potigianContext.SaveChangesAsync();
                     } 
                     else
                     {
-                        var preparation = await requestPreparations.FirstAsync();
-
-                        if (preparation.StartDate == null)
+                        try
                         {
-                            preparation.Code = preparer.ToString();
-                            preparation.StartDate = DateTime.Now;
-                            preparation.EndDate = null;
-                            preparation.StatusCode = Config.Requests.StateInPreparation;
+                            var preparation = await requestPreparations.FirstAsync();
 
-                            potigianContext.Update(preparation);
+                            if (preparation.StartDate == null)
+                            {
+                                preparation.Code = preparer.ToString();
+                                preparation.StartDate = DateTime.Now;
+                                preparation.EndDate = null;
+                                preparation.StatusCode = Config.Requests.StateInPreparation;
 
-                            await potigianContext.SaveChangesAsync();
+                                potigianContext.Update(preparation);
+                                potigianContext.Add(PreparerProductivity.FromPreparation(preparation));
+
+                                await potigianContext.SaveChangesAsync();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            throw ex;
                         }
                     }
 
@@ -262,7 +273,7 @@ namespace PotigianHH.Controllers
                             req.DocumentSuffix == suffixDoc)
                         .ToListAsync();
                     var unfinishedRequestDetails = requestDetails
-                        .Where(req => req.PackagesGrams != payload.ArticleCount[req.ArticleCode]);
+                        .Where(req => req.PackagesGrams != payload.ArticleCount[GetDictionaryCountKey(req)]);
                     var requestHeader = await potigianContext.RequestHeaders
                         .FirstAsync(req => req.DocumentPrefix == prefixDoc && req.DocumentCode == doc && req.DocumentSuffix == suffixDoc);
 
@@ -270,12 +281,12 @@ namespace PotigianHH.Controllers
                     if (unfinishedRequestDetails.Count() > 0)
                     {
                         var missingRequestDetails = unfinishedRequestDetails
-                            .Select(req => new RequestMissingDetails(req, payload.ArticleCount[req.ArticleCode]))
+                            .Select(req => new RequestMissingDetails(req, payload.ArticleCount[GetDictionaryCountKey(req)]))
                             .ToList();
 
                         foreach (var request in unfinishedRequestDetails)
                         {
-                            request.PackagesGrams = payload.ArticleCount[request.ArticleCode];
+                            request.PackagesGrams = payload.ArticleCount[GetDictionaryCountKey(request)];
                             request.ArticleTotal = request.PackagesGrams * request.ArticleUnitaryPrice;
                         }
 
@@ -290,6 +301,18 @@ namespace PotigianHH.Controllers
                     var preparation = await potigianContext.RequestPreparations.FirstAsync(p => p.DocumentSuffix == suffixDoc);
                     preparation.EndDate = DateTime.Now;
                     preparation.StatusCode = Config.Requests.StateClosed;
+                    preparation.MovementFlag = 'E';
+
+                    var productivity = await potigianContext.PreparerProductivities.FirstAsync(p => p.DocumentSuffix == suffixDoc);
+                    productivity.EndDate = preparation.EndDate;
+                    productivity.StatusCode = preparation.StatusCode;
+                    productivity.MovementFlag = preparation.MovementFlag;
+
+                    var productivityDifferential = productivity.EndDate.Value.Subtract(productivity.StartDate.Value);
+                    productivity.Days = productivityDifferential.Days;
+                    productivity.Hours = productivityDifferential.Hours;
+                    productivity.Minutes = productivityDifferential.Minutes;
+                    productivity.Seconds = productivityDifferential.Seconds;
 
                     requestHeader.SituationCode = Config.Requests.StateClosed;
                     requestHeader.SituationDate = DateTime.Now;
@@ -298,11 +321,28 @@ namespace PotigianHH.Controllers
 
                     potigianContext.RequestHeaders.Update(requestHeader);
                     potigianContext.RequestPreparations.Update(preparation);
+                    potigianContext.PreparerProductivities.Update(productivity);
 
                     await potigianContext.SaveChangesAsync();
 
                     return closedComplete;
                 });
         }
+
+        private string GetDictionaryCountKey(RequestDetails request)
+        {
+            using (SHA256 sha256 = SHA256.Create())
+            {
+                // Key format: '#1000-02/02/2020 02:02:02#' - Used to have a single string key on the dictionary
+                string toFormat = "#" + request.ArticleCode + "-" + request.InsertDate.ToString("dd/MM/yyyy HH:mm:ss") + "#";
+                byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(toFormat));
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < bytes.Length; i++)
+                {
+                    sb.Append(bytes[i].ToString("x2"));
+                }
+                return sb.ToString();
+            }
+        } 
     }
 }
