@@ -333,8 +333,8 @@ namespace PotigianHH.Controllers
         {
             using (SHA256 sha256 = SHA256.Create())
             {
-                // Key format: '#1000-02/02/2020 02:02:02#' - Used to have a single string key on the dictionary
-                string toFormat = "#" + request.ArticleCode + "-" + request.InsertDate.ToString("dd/MM/yyyy HH:mm:ss") + "#";
+                // Key format: '#1000-02/02/2020 02:02:02-1#' - Used to have a single string key on the dictionary
+                string toFormat = "#" + request.ArticleCode + "-" + request.InsertDate.ToString("dd/MM/yyyy HH:mm:ss") + "-" + request.RequestItem.Value + "#";
                 byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(toFormat));
                 StringBuilder sb = new StringBuilder();
                 for (int i = 0; i < bytes.Length; i++)
