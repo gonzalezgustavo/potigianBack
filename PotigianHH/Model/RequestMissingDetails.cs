@@ -87,7 +87,7 @@ namespace PotigianHH.Model
             this.IVA = details.IVA;
             this.ArticleTotal = details.ArticleTotal;
             this.TotalArticleWeight = details.TotalArticleWeight;
-            this.RequestGramsUnit = details.RequestItem;
+            this.RequestGramsUnit = details.PackagesGrams;
             this.DeliveredGramsUnit = actualCount;
             this.PendingGramsUnit = this.PackagesGrams - this.DeliveredGramsUnit;
             this.InsertDate = DateTime.Now;
