@@ -311,11 +311,14 @@ namespace PotigianHH.Controllers
                         {
                             request.PackagesGrams = payload.ArticleCount[GetDictionaryCountKey(request)];
                             request.ArticleTotal = request.PackagesGrams * request.ArticleUnitaryPrice;
+
+                            if (request.PackagesGrams > 0)
+                            {
+                                potigianContext.RequestDetails.Update(request);
+                            }
                         }
 
                         potigianContext.RequestMissingDetails.AddRange(missingRequestDetails);
-                        potigianContext.RequestDetails.UpdateRange(unfinishedRequestDetails);
-
                         closedComplete = false;
                     }
 
