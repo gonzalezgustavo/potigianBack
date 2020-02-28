@@ -309,11 +309,12 @@ namespace PotigianHH.Controllers
 
                         foreach (var request in unfinishedRequestDetails)
                         {
-                            request.PackagesGrams = payload.ArticleCount[GetDictionaryCountKey(request)];
-                            request.ArticleTotal = request.PackagesGrams * request.ArticleUnitaryPrice;
+                            int count = payload.ArticleCount[GetDictionaryCountKey(request)];
 
-                            if (request.PackagesGrams > 0)
+                            if (count != 0)
                             {
+                                request.PackagesGrams = count;
+                                request.ArticleTotal = request.PackagesGrams * request.ArticleUnitaryPrice;
                                 potigianContext.RequestDetails.Update(request);
                             }
                         }
