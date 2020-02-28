@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 
@@ -6,7 +7,7 @@ namespace PotigianHH.Controllers.Model
 {
     public static class RequestsHandler
     {
-        public static async Task<ActionResult<Response<T>>> HandleAsyncRequest<T>(Func<Task<T>> lambda)
+        public static async Task<ActionResult<Response<T>>> HandleAsyncRequest<T>(ILogger logger, Func<Task<T>> lambda)
         {
             var response = new Response<T>();
 
@@ -17,6 +18,7 @@ namespace PotigianHH.Controllers.Model
             }
             catch (Exception ex)
             {
+                logger.LogError("Excepción: " + ex.ToString());
                 response.Success = false;
                 response.ErrorInfo = new ErrorInfo
                 {
@@ -28,7 +30,7 @@ namespace PotigianHH.Controllers.Model
             return response;
         }
 
-        public static ActionResult<Response<T>> HandleRequest<T>(Func<T> lambda)
+        public static ActionResult<Response<T>> HandleRequest<T>(ILogger logger, Func<T> lambda)
         {
             var response = new Response<T>();
 
@@ -39,6 +41,7 @@ namespace PotigianHH.Controllers.Model
             }
             catch (Exception ex)
             {
+                logger.LogError("Excepción: " + ex.ToString());
                 response.Success = false;
                 response.ErrorInfo = new ErrorInfo
                 {

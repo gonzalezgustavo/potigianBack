@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using PotigianHH.Controllers.Model;
 using PotigianHH.Database;
 using PotigianHH.Model;
@@ -19,17 +20,21 @@ namespace PotigianHH.Controllers
     {
         private readonly PotigianContext potigianContext;
         private readonly IConfiguration config;
+        private readonly ILogger<RequestsController> logger;
 
-        public RequestsController(PotigianContext potigianContext, IConfiguration config)
+        public RequestsController(PotigianContext potigianContext, IConfiguration config, ILogger<RequestsController> logger)
         {
             this.potigianContext = potigianContext;
             this.config = config;
+            this.logger = logger;
         }
 
         [HttpGet("cabe")]
         public async Task<ActionResult<Response<List<RequestHeaders>>>> GetRequestsHeaders()
         {
+            logger.LogInformation("GET cabe invocado");
             return await RequestsHandler.HandleAsyncRequest(
+                logger,
                 async () => await potigianContext.RequestHeaders
                     .ToListAsync());
         }
@@ -37,7 +42,9 @@ namespace PotigianHH.Controllers
         [HttpGet("cabe/situacion/{situation}")]
         public async Task<ActionResult<Response<List<RequestHeaders>>>> GetRequestsHeadersBySituation(int situation)
         {
+            logger.LogInformation("GET cabe/situacion/{code} invocado con code " + situation);
             return await RequestsHandler.HandleAsyncRequest(
+                logger,
                 async () => await potigianContext.RequestHeaders
                     .Where(h => h.SituationCode == situation)
                     .ToListAsync());
@@ -46,7 +53,9 @@ namespace PotigianHH.Controllers
         [HttpGet("cabe/asignados/{preparer}")]
         public async Task<ActionResult<Response<List<RequestHeaders>>>> GetRequestsHeadersByPreparer(int preparer)
         {
+            logger.LogInformation("GET cabe/asignados/{preparador} invocado con preparador " + preparer);
             return await RequestsHandler.HandleAsyncRequest(
+                logger,
                 async () => await potigianContext.RequestHeaders
                 .Where(h => (h.PreparerCode == preparer.ToString() || h.PreparerCode == $"CSPRP{preparer}") && h.SituationCode == Config.Requests.StateInPreparation)
                 .ToListAsync());
@@ -55,7 +64,9 @@ namespace PotigianHH.Controllers
         [HttpPost("cabe/asignados/{prefixDoc}/{doc}/{suffixDoc}/start/{preparer}")]
         public async Task<ActionResult<Response<bool>>> StartRequest(int prefixDoc, int doc, int suffixDoc, int preparer)
         {
+            logger.LogInformation("POST cabe/asignados/{prefijo}/{doc}/{sufijo}/start/{preparador} invocado con prefijo " + prefixDoc + ", doc " + doc + ", sufijo " + suffixDoc + " y preparador " + preparer);
             return await RequestsHandler.HandleAsyncRequest(
+                logger,
                 async () =>
                 {
                     var requestPreparations = potigianContext.RequestPreparations.Where(rp => rp.DocumentSuffix == suffixDoc);
@@ -108,7 +119,9 @@ namespace PotigianHH.Controllers
         [HttpPost("cabe/asignados/{preparer}/clear")]
         public async Task<ActionResult<Response<bool>>> ClearAssignedRequestsFromPreparer(int preparer)
         {
+            logger.LogInformation("POST cabe/asignados/{preparador}/clear invocado con preparador " + preparer);
             return await RequestsHandler.HandleAsyncRequest(
+                logger,
                 async () =>
                 {
                     var assignedRequests = await potigianContext.RequestHeaders
@@ -138,7 +151,9 @@ namespace PotigianHH.Controllers
             [FromQuery(Name = "pedido")] int suffixNumber,
             [FromQuery(Name = "reparto")] int deliveryNumber)
         {
+            logger.LogInformation("POST cabe/asignados/{preparador} invocado con preparador " + preparer);
             return await RequestsHandler.HandleAsyncRequest(
+                logger,
                 async () =>
                 {
                     var assignedRequests = await potigianContext.RequestHeaders
@@ -214,14 +229,18 @@ namespace PotigianHH.Controllers
         [HttpGet("detalle")]
         public async Task<ActionResult<Response<List<RequestDetails>>>> GetRequestsDetails()
         {
+            logger.LogInformation("GET detalle invocado");
             return await RequestsHandler.HandleAsyncRequest(
+                logger,
                 async () => await potigianContext.RequestDetails.ToListAsync());
         }
 
         [HttpGet("detalle/{prefixDoc}/{doc}/{suffixDoc}")]
         public async Task<ActionResult<Response<List<RequestDetails>>>> GetRequestDetails(int prefixDoc, int doc, int suffixDoc)
         {
+            logger.LogInformation("GET detalle/{prefijo}/{doc}/{sufijo} invocado con prefijo " + prefixDoc + ", doc " + doc + " y sufijo " + suffixDoc);
             return await RequestsHandler.HandleAsyncRequest(
+                logger,
                 async () =>
                 {
                     var requestDetails = await potigianContext.RequestDetails
@@ -254,14 +273,18 @@ namespace PotigianHH.Controllers
         [HttpGet("preparaciones")]
         public async Task<ActionResult<Response<List<RequestPreparation>>>> GetRequestsPreparations()
         {
+            logger.LogInformation("GET preparaciones invocado");
             return await RequestsHandler.HandleAsyncRequest(
+                logger,
                 async () => await potigianContext.RequestPreparations.ToListAsync());
         }
 
         [HttpPost("preparaciones/{prefixDoc}/{doc}/{suffixDoc}")]
         public async Task<ActionResult<Response<bool>>> CloseRequestPreparation(int prefixDoc, int doc, int suffixDoc, [FromBody] CloseRequestPayload payload)
         {
+            logger.LogInformation("POST preparaciones/{prefijo}/{doc}/{sufijo} invocado con prefijo " + prefixDoc + ", doc " + doc + " y sufijo " + suffixDoc);
             return await RequestsHandler.HandleAsyncRequest(
+                logger,
                 async () =>
                 {
                     bool closedComplete = true;

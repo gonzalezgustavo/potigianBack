@@ -7,6 +7,7 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using PotigianHH.Controllers.Model;
 using PotigianHH.Database;
 using PotigianHH.Model;
@@ -18,23 +19,29 @@ namespace PotigianHH.Controllers
     public class OrdersController : ControllerBase
     {
         private readonly PotigianContext potigianContext;
+        private readonly ILogger<OrdersController> logger;
 
-        public OrdersController(PotigianContext potigianContext)
+        public OrdersController(PotigianContext potigianContext, ILogger<OrdersController> logger)
         {
             this.potigianContext = potigianContext;
+            this.logger = logger;
         }
 
         [HttpGet("proveedor/{code}")]
         public async Task<ActionResult<Response<List<PurchaseOrderHeader>>>> GetOrdersByProvider(int code)
         {
+            logger.LogInformation("GET proveedor/{code} invocado con code " + code);
             return await RequestsHandler.HandleAsyncRequest(
+                logger,
                 async () => await potigianContext.PurchaseOrdersHeaders.Where(o => o.ProviderCode == code && o.Situation == 1).ToListAsync());
         }
 
         [HttpGet("{suffixCode}/proveedor/{providerCode}")]
         public async Task<ActionResult<Response<List<PurchaseOrderHeader>>>> GetOrdersByProviderAndSuffixCode(string providerCode, string suffixCode)
         {
+            logger.LogInformation("GET {sufijo}/proveedor/{code} invocado con sufijo " + suffixCode + " y code " + providerCode);
             return await RequestsHandler.HandleAsyncRequest(
+                logger,
                 async () =>
                 {
                     var expr = default(Expression<Func<PurchaseOrderHeader, bool>>);
@@ -71,7 +78,9 @@ namespace PotigianHH.Controllers
         [HttpGet("{prefixCode}/{ocCode}/{suffixCode}")]
         public async Task<ActionResult<Response<List<PurchaseOrderDetails>>>> GetOrderDetails(string prefixCode, string ocCode, string suffixCode)
         {
+            logger.LogInformation("GET {prefijo}/{oc}/{sufijo} invocado con prefijo " + prefixCode + ", oc " + ocCode + " y sufijo " + suffixCode);
             return await RequestsHandler.HandleAsyncRequest(
+                logger,
                 async () => await potigianContext.PurchaseOrderDetails
                     .Where(od =>
                         od.PrefixOcCode.ToString() == prefixCode &&
@@ -93,7 +102,9 @@ namespace PotigianHH.Controllers
         [HttpPost("{prefixCode}/{ocCode}/{suffixCode}")]
         public async Task<ActionResult<Response<SynchronizeOrderResponse>>> SynchronizeOrder(string prefixCode, string ocCode, string suffixCode, [FromBody] SynchronizeOrderPayload payload)
         {
+            logger.LogInformation("POST {prefijo}/{oc}/{sufijo} invocado con prefijo " + prefixCode + ", oc " + ocCode + " y sufijo " + suffixCode);
             return await RequestsHandler.HandleAsyncRequest(
+                logger,
                 async () =>
                 {
                     var orderHeader = await potigianContext.PurchaseOrdersHeaders
